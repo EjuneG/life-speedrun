@@ -44,7 +44,7 @@ export function AddTaskModal() {
                   key={emoji}
                   type="button"
                   onClick={() => setIcon(emoji)}
-                  className={`text-3xl p-2 rounded transition-all ${
+                  className={`text-3xl p-2 rounded transition-all flex items-center justify-center ${
                     icon === emoji
                       ? 'bg-neon-blue bg-opacity-20 scale-110'
                       : 'hover:bg-cyber-gray'
