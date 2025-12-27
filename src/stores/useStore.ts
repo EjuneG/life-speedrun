@@ -13,6 +13,7 @@ interface AppState {
   showResult: boolean;
   lastResult: ResultData | null;
   showAddTask: boolean;
+  editingTaskId: string | null;
 
   // Actions
   startTimer: (taskId: string) => void;
@@ -20,6 +21,9 @@ interface AppState {
   closeResult: () => void;
   setShowAddTask: (show: boolean) => void;
   addTask: (name: string, icon: string) => Promise<void>;
+  updateTask: (id: string, name: string, icon: string) => Promise<void>;
+  deleteTask: (id: string) => Promise<void>;
+  setEditingTaskId: (id: string | null) => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -29,6 +33,7 @@ export const useStore = create<AppState>((set, get) => ({
   showResult: false,
   lastResult: null,
   showAddTask: false,
+  editingTaskId: null,
 
   startTimer: (taskId: string) => {
     set({
@@ -104,5 +109,22 @@ export const useStore = create<AppState>((set, get) => ({
       personalBest: null,
     });
     set({ showAddTask: false });
+  },
+
+  updateTask: async (id: string, name: string, icon: string) => {
+    await db.tasks.update(id, { name, icon });
+    set({ editingTaskId: null });
+  },
+
+  deleteTask: async (id: string) => {
+    // Delete all records associated with this task
+    await db.records.where('taskId').equals(id).delete();
+    // Delete the task itself
+    await db.tasks.delete(id);
+    set({ editingTaskId: null });
+  },
+
+  setEditingTaskId: (id: string | null) => {
+    set({ editingTaskId: id });
   },
 }));

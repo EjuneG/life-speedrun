@@ -62,9 +62,7 @@ export function Timer() {
             <div className="space-y-2 text-lg">
               <div className="text-gray-400">
                 <span>PB: </span>
-                <span className="font-mono text-white">
-                  {formatTime(task.personalBest)}
-                </span>
+                <span className="font-mono text-white">{formatTime(task.personalBest)}</span>
               </div>
               {currentDelta !== null && (
                 <div

@@ -9,7 +9,7 @@ class LifeSpeedrunDB extends Dexie {
     super('life-speedrun');
     this.version(1).stores({
       tasks: 'id, createdAt',
-      records: 'id, taskId, completedAt'
+      records: 'id, taskId, completedAt',
     });
   }
 }

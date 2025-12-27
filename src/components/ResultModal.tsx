@@ -15,9 +15,7 @@ export function ResultModal() {
         {isNewPB && (
           <div className="text-center mb-6 animate-pulse-glow">
             <div className="text-5xl mb-2">🎉</div>
-            <h2 className="text-2xl font-bold text-neon-green text-glow-green">
-              NEW RECORD!
-            </h2>
+            <h2 className="text-2xl font-bold text-neon-green text-glow-green">NEW RECORD!</h2>
           </div>
         )}
 
@@ -29,18 +27,14 @@ export function ResultModal() {
 
         {/* Time Display */}
         <div className="text-center mb-6">
-          <div className="font-mono text-5xl font-bold text-white mb-4">
-            {formatTime(duration)}
-          </div>
+          <div className="font-mono text-5xl font-bold text-white mb-4">{formatTime(duration)}</div>
 
           {/* Delta */}
           {delta !== null && (
             <div className="space-y-2">
               <div
                 className={`text-2xl font-mono font-bold flex items-center justify-center gap-2 ${
-                  delta < 0
-                    ? 'text-neon-green text-glow-green'
-                    : 'text-neon-red text-glow-red'
+                  delta < 0 ? 'text-neon-green text-glow-green' : 'text-neon-red text-glow-red'
                 }`}
               >
                 {delta < 0 ? (
@@ -75,14 +69,10 @@ export function ResultModal() {
                   </svg>
                 )}
                 <span>{formatDelta(delta)}</span>
-                <span className="text-sm text-gray-400">
-                  {delta < 0 ? 'faster' : 'slower'}
-                </span>
+                <span className="text-sm text-gray-400">{delta < 0 ? 'faster' : 'slower'}</span>
               </div>
               {previousPB !== null && (
-                <p className="text-gray-400 text-sm">
-                  Previous PB: {formatTime(previousPB)}
-                </p>
+                <p className="text-gray-400 text-sm">Previous PB: {formatTime(previousPB)}</p>
               )}
             </div>
           )}

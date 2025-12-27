@@ -12,9 +12,7 @@ export function TaskList() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-neon-green text-glow-green mb-2">
-            生活速通
-          </h1>
+          <h1 className="text-4xl font-bold text-neon-green text-glow-green mb-2">生活速通</h1>
           <p className="text-gray-400 text-sm">LIFE SPEEDRUN</p>
         </div>
 
@@ -30,12 +28,7 @@ export function TaskList() {
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           <span className="font-semibold">添加任务</span>
         </button>

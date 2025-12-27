@@ -2,9 +2,30 @@ import { useState } from 'react';
 import { useStore } from '../stores/useStore';
 
 const EMOJI_SUGGESTIONS = [
-  '🪥', '☀️', '🍽️', '🧹', '📚', '💪', '🏃', '🧘',
-  '🚿', '🥗', '☕', '💻', '🎮', '🛌', '🧺', '🚗',
-  '🐕', '🌱', '🎨', '🎵', '📝', '🔧', '🍳', '🧼'
+  '🪥',
+  '☀️',
+  '🍽️',
+  '🧹',
+  '📚',
+  '💪',
+  '🏃',
+  '🧘',
+  '🚿',
+  '🥗',
+  '☕',
+  '💻',
+  '🎮',
+  '🛌',
+  '🧺',
+  '🚗',
+  '🐕',
+  '🌱',
+  '🎨',
+  '🎵',
+  '📝',
+  '🔧',
+  '🍳',
+  '🧼',
 ];
 
 export function AddTaskModal() {
@@ -45,9 +66,7 @@ export function AddTaskModal() {
                   type="button"
                   onClick={() => setIcon(emoji)}
                   className={`text-3xl p-2 rounded transition-all flex items-center justify-center ${
-                    icon === emoji
-                      ? 'bg-neon-blue bg-opacity-20 scale-110'
-                      : 'hover:bg-cyber-gray'
+                    icon === emoji ? 'bg-neon-blue bg-opacity-20 scale-110' : 'hover:bg-cyber-gray'
                   }`}
                 >
                   {emoji}
