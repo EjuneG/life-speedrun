@@ -5,7 +5,7 @@ import { useTimer } from '../hooks/useTimer';
 import { formatTime, formatDelta } from '../utils/formatTime';
 
 export function Timer() {
-  const { activeTaskId, stopTimer } = useStore();
+  const { activeTaskId, stopTimer, abandonTimer } = useStore();
   const elapsed = useTimer();
   const task = useLiveQuery(() => {
     if (!activeTaskId) return undefined;
@@ -16,8 +16,12 @@ export function Timer() {
 
   const currentDelta = task.personalBest !== null ? elapsed - task.personalBest : null;
 
-  const handleStop = async () => {
+  const handleComplete = async () => {
     await stopTimer();
+  };
+
+  const handleAbandon = () => {
+    abandonTimer();
   };
 
   return (
@@ -25,7 +29,7 @@ export function Timer() {
       <div className="max-w-md w-full">
         {/* Back Button */}
         <button
-          onClick={handleStop}
+          onClick={handleAbandon}
           className="text-gray-400 hover:text-neon-blue transition-colors mb-8 flex items-center gap-2"
         >
           <svg
@@ -79,9 +83,9 @@ export function Timer() {
           )}
         </div>
 
-        {/* Stop Button */}
+        {/* Complete Button */}
         <button
-          onClick={handleStop}
+          onClick={handleComplete}
           className="w-full bg-neon-green hover:bg-opacity-90 text-cyber-black font-bold text-xl py-6 rounded-lg transition-all duration-300 shadow-neon-green hover:shadow-lg"
         >
           ■ 完成

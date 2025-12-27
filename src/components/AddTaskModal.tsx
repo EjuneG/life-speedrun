@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useStore } from '../stores/useStore';
+import { validateTaskName, validateIcon } from '../utils/validation';
 
 const EMOJI_SUGGESTIONS = [
   '🪥',
@@ -32,22 +33,34 @@ export function AddTaskModal() {
   const { showAddTask, setShowAddTask, addTask } = useStore();
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('🪥');
+  const [error, setError] = useState<string>('');
 
   if (!showAddTask) return null;
 
+  const nameValidation = validateTaskName(name);
+  const isValid = nameValidation.valid;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
 
-    await addTask(name.trim(), icon);
+    const nameValidation = validateTaskName(name);
+    if (!nameValidation.valid) {
+      setError(nameValidation.error || '输入无效');
+      return;
+    }
+
+    const iconValidation = validateIcon(icon);
+    await addTask(name.trim(), iconValidation.sanitized);
     setName('');
     setIcon('🪥');
+    setError('');
   };
 
   const handleClose = () => {
     setShowAddTask(false);
     setName('');
     setIcon('🪥');
+    setError('');
   };
 
   return (
@@ -90,11 +103,19 @@ export function AddTaskModal() {
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                setError('');
+              }}
               placeholder="例如: 刷牙、晨起、洗碗"
               className="w-full bg-cyber-gray text-white px-4 py-3 rounded border border-transparent focus:border-neon-blue outline-none transition-colors"
               autoFocus
+              maxLength={50}
             />
+            {error && <p className="mt-2 text-sm text-[#ff3e3e]">{error}</p>}
+            {!error && name.length > 0 && (
+              <p className="mt-1 text-xs text-gray-500">{name.length}/50 字符</p>
+            )}
           </div>
 
           {/* Buttons */}
@@ -108,7 +129,7 @@ export function AddTaskModal() {
             </button>
             <button
               type="submit"
-              disabled={!name.trim()}
+              disabled={!isValid}
               className="flex-1 bg-neon-blue hover:bg-opacity-90 text-cyber-black font-bold py-3 rounded transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               添加

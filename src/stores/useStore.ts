@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { nanoid } from 'nanoid';
 import { db } from '../db';
 import { ResultData } from '../types';
+import { sanitizeTaskName, validateIcon } from '../utils/validation';
 
 interface AppState {
   // Timer state
@@ -18,6 +19,7 @@ interface AppState {
   // Actions
   startTimer: (taskId: string) => void;
   stopTimer: () => Promise<void>;
+  abandonTimer: () => void;
   closeResult: () => void;
   setShowAddTask: (show: boolean) => void;
   addTask: (name: string, icon: string) => Promise<void>;
@@ -89,6 +91,14 @@ export const useStore = create<AppState>((set, get) => ({
     });
   },
 
+  abandonTimer: () => {
+    set({
+      activeTaskId: null,
+      startTime: null,
+      isRunning: false,
+    });
+  },
+
   closeResult: () => {
     set({
       showResult: false,
@@ -101,10 +111,13 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   addTask: async (name: string, icon: string) => {
+    const sanitizedName = sanitizeTaskName(name);
+    const iconValidation = validateIcon(icon);
+
     await db.tasks.add({
       id: nanoid(),
-      name,
-      icon,
+      name: sanitizedName,
+      icon: iconValidation.sanitized,
       createdAt: Date.now(),
       personalBest: null,
     });
@@ -112,7 +125,13 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   updateTask: async (id: string, name: string, icon: string) => {
-    await db.tasks.update(id, { name, icon });
+    const sanitizedName = sanitizeTaskName(name);
+    const iconValidation = validateIcon(icon);
+
+    await db.tasks.update(id, {
+      name: sanitizedName,
+      icon: iconValidation.sanitized,
+    });
     set({ editingTaskId: null });
   },
 

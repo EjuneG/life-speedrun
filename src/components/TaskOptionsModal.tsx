@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Task } from '../types';
 import { useStore } from '../stores/useStore';
+import { validateTaskName, validateIcon } from '../utils/validation';
 
 interface TaskOptionsModalProps {
   task: Task;
@@ -11,12 +12,22 @@ export default function TaskOptionsModal({ task, onClose }: TaskOptionsModalProp
   const [mode, setMode] = useState<'menu' | 'edit' | 'delete'>('menu');
   const [name, setName] = useState(task.name);
   const [icon, setIcon] = useState(task.icon);
+  const [error, setError] = useState<string>('');
   const updateTask = useStore((state) => state.updateTask);
   const deleteTask = useStore((state) => state.deleteTask);
 
+  const nameValidation = validateTaskName(name);
+  const isValid = nameValidation.valid;
+
   const handleUpdate = async () => {
-    if (!name.trim()) return;
-    await updateTask(task.id, name.trim(), icon);
+    const nameValidation = validateTaskName(name);
+    if (!nameValidation.valid) {
+      setError(nameValidation.error || '输入无效');
+      return;
+    }
+
+    const iconValidation = validateIcon(icon);
+    await updateTask(task.id, name.trim(), iconValidation.sanitized);
     onClose();
   };
 
@@ -47,11 +58,19 @@ export default function TaskOptionsModal({ task, onClose }: TaskOptionsModalProp
             <input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                setError('');
+              }}
               className="w-full rounded-lg bg-[#2a2a2a] px-4 py-3 text-white outline-none transition focus:ring-2 focus:ring-[#00ff9f]"
               placeholder="输入任务名称"
               autoFocus
+              maxLength={50}
             />
+            {error && <p className="mt-2 text-sm text-[#ff3e3e]">{error}</p>}
+            {!error && name.length > 0 && (
+              <p className="mt-1 text-xs text-gray-500">{name.length}/50 字符</p>
+            )}
           </div>
 
           <div className="flex gap-3">
@@ -63,7 +82,7 @@ export default function TaskOptionsModal({ task, onClose }: TaskOptionsModalProp
             </button>
             <button
               onClick={handleUpdate}
-              disabled={!name.trim()}
+              disabled={!isValid}
               className="flex-1 rounded-lg bg-[#00ff9f] px-6 py-3 font-medium text-black transition hover:bg-[#00d480] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               保存
