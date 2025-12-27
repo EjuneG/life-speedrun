@@ -15,6 +15,7 @@ interface AppState {
   lastResult: ResultData | null;
   showAddTask: boolean;
   editingTaskId: string | null;
+  error: string | null;
 
   // Actions
   startTimer: (taskId: string) => void;
@@ -26,6 +27,8 @@ interface AppState {
   updateTask: (id: string, name: string, icon: string) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   setEditingTaskId: (id: string | null) => void;
+  setError: (error: string | null) => void;
+  clearError: () => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -36,6 +39,7 @@ export const useStore = create<AppState>((set, get) => ({
   lastResult: null,
   showAddTask: false,
   editingTaskId: null,
+  error: null,
 
   startTimer: (taskId: string) => {
     set({
@@ -50,45 +54,70 @@ export const useStore = create<AppState>((set, get) => ({
     if (!activeTaskId || !startTime) return;
 
     const duration = Date.now() - startTime;
-    const task = await db.tasks.get(activeTaskId);
 
-    if (!task) return;
-
-    const previousPB = task.personalBest;
-    const isNewPB = previousPB === null || duration < previousPB;
-    const delta = previousPB !== null ? duration - previousPB : null;
-
-    // 保存记录
-    await db.records.add({
-      id: nanoid(),
-      taskId: activeTaskId,
-      duration,
-      completedAt: Date.now(),
-      delta,
-      isNewPB,
-    });
-
-    // 更新 PB
-    if (isNewPB) {
-      await db.tasks.update(activeTaskId, {
-        personalBest: duration,
+    // Minimum duration threshold (500ms) to prevent accidental taps
+    if (duration < 500) {
+      // Abandon timer if duration too short
+      set({
+        activeTaskId: null,
+        startTime: null,
+        isRunning: false,
       });
+      return;
     }
 
-    set({
-      isRunning: false,
-      activeTaskId: null,
-      startTime: null,
-      showResult: true,
-      lastResult: {
+    try {
+      const task = await db.tasks.get(activeTaskId);
+
+      if (!task) {
+        set({ error: '任务不存在' });
+        return;
+      }
+
+      const previousPB = task.personalBest;
+      const isNewPB = previousPB === null || duration < previousPB;
+      const delta = previousPB !== null ? duration - previousPB : null;
+
+      // 保存记录
+      await db.records.add({
+        id: nanoid(),
+        taskId: activeTaskId,
         duration,
+        completedAt: Date.now(),
         delta,
         isNewPB,
-        previousPB,
-        taskName: task.name,
-        taskIcon: task.icon,
-      },
-    });
+      });
+
+      // 更新 PB
+      if (isNewPB) {
+        await db.tasks.update(activeTaskId, {
+          personalBest: duration,
+        });
+      }
+
+      set({
+        isRunning: false,
+        activeTaskId: null,
+        startTime: null,
+        showResult: true,
+        lastResult: {
+          duration,
+          delta,
+          isNewPB,
+          previousPB,
+          taskName: task.name,
+          taskIcon: task.icon,
+        },
+      });
+    } catch (error) {
+      console.error('Failed to save record:', error);
+      set({
+        error: '保存记录失败',
+        isRunning: false,
+        activeTaskId: null,
+        startTime: null,
+      });
+    }
   },
 
   abandonTimer: () => {
@@ -111,39 +140,62 @@ export const useStore = create<AppState>((set, get) => ({
   },
 
   addTask: async (name: string, icon: string) => {
-    const sanitizedName = sanitizeTaskName(name);
-    const iconValidation = validateIcon(icon);
+    try {
+      const sanitizedName = sanitizeTaskName(name);
+      const iconValidation = validateIcon(icon);
 
-    await db.tasks.add({
-      id: nanoid(),
-      name: sanitizedName,
-      icon: iconValidation.sanitized,
-      createdAt: Date.now(),
-      personalBest: null,
-    });
-    set({ showAddTask: false });
+      await db.tasks.add({
+        id: nanoid(),
+        name: sanitizedName,
+        icon: iconValidation.sanitized,
+        createdAt: Date.now(),
+        personalBest: null,
+      });
+      set({ showAddTask: false });
+    } catch (error) {
+      console.error('Failed to add task:', error);
+      set({ error: '添加任务失败' });
+    }
   },
 
   updateTask: async (id: string, name: string, icon: string) => {
-    const sanitizedName = sanitizeTaskName(name);
-    const iconValidation = validateIcon(icon);
+    try {
+      const sanitizedName = sanitizeTaskName(name);
+      const iconValidation = validateIcon(icon);
 
-    await db.tasks.update(id, {
-      name: sanitizedName,
-      icon: iconValidation.sanitized,
-    });
-    set({ editingTaskId: null });
+      await db.tasks.update(id, {
+        name: sanitizedName,
+        icon: iconValidation.sanitized,
+      });
+      set({ editingTaskId: null });
+    } catch (error) {
+      console.error('Failed to update task:', error);
+      set({ error: '更新任务失败' });
+    }
   },
 
   deleteTask: async (id: string) => {
-    // Delete all records associated with this task
-    await db.records.where('taskId').equals(id).delete();
-    // Delete the task itself
-    await db.tasks.delete(id);
-    set({ editingTaskId: null });
+    try {
+      // Delete all records associated with this task
+      await db.records.where('taskId').equals(id).delete();
+      // Delete the task itself
+      await db.tasks.delete(id);
+      set({ editingTaskId: null });
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      set({ error: '删除任务失败' });
+    }
   },
 
   setEditingTaskId: (id: string | null) => {
     set({ editingTaskId: id });
+  },
+
+  setError: (error: string | null) => {
+    set({ error });
+  },
+
+  clearError: () => {
+    set({ error: null });
   },
 }));

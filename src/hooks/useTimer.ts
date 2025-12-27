@@ -15,7 +15,14 @@ export function useTimer() {
     let animationFrameId: number;
 
     const updateElapsed = () => {
-      setElapsed(Date.now() - startTime);
+      const currentTime = Date.now();
+      const newElapsed = currentTime - startTime;
+
+      // Prevent negative elapsed time (edge case with clock changes)
+      if (newElapsed >= 0) {
+        setElapsed(newElapsed);
+      }
+
       animationFrameId = requestAnimationFrame(updateElapsed);
     };
 
